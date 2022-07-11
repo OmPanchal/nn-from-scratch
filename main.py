@@ -7,6 +7,10 @@ from nn.activations.Relu import Relu
 from nn.activations.Tanh import Tanh
 from nn.losses.CategoricalCrossEntropy import CategoricalCrossEntropy
 from nn.models.Model import Model
+from nn.optimisers.Adam import Adam
+from nn.optimisers.Momentum import Momentum
+from nn.optimisers.RMSProp import RMSProp
+from nn.optimisers.SGD import SGD
 from nn.utils import one_hot_array
 
 import numpy as np
@@ -18,12 +22,13 @@ from random import randint
 # preprocessing
 df = pd.read_csv("dataset\mnist_train.csv")
 
-numpydf = df.to_numpy().T[1:].T[0]
-batch = df.to_numpy().T[1:].T[0:100]
-labels = df.to_numpy().T[0].T[0:100]
+numpydf = df.to_numpy()
+np.random.shuffle(numpydf)
+
+batch = numpydf.T[1:].T[0:100]
+labels = numpydf.T[0].T[0:100]
 
 one_hot_labels = one_hot_array(labels)
-
 
 # training
 layers = [Dense(784, 64, activation=Tanh()),
@@ -33,15 +38,14 @@ layers = [Dense(784, 64, activation=Tanh()),
 
 model = Model(layers=layers)
 
-model.build(loss=CategoricalCrossEntropy())
+model.build(loss=CategoricalCrossEntropy(), optimiser=Adam())
 
-model.fit(batch, one_hot_labels, epochs=100, learning_rate=0.01)
+model.fit(batch, one_hot_labels, epochs=1000)
 
-model.save("model", behaviour=1)
+model.save("model-adam", behaviour=0)
 
 # ~ Graphs the error at each epoch
 model.graph()
-
 
 # predictions
 randidx = randint(0, 99)
@@ -51,7 +55,11 @@ predicted_values = model.predict(batch[randidx])
 argmax_predicted = np.argmax(predicted_values)
 classes = np.unique(labels)
 
+print(np.squeeze(predicted_values), np.squeeze(one_hot_labels[randidx]))
+
 fig, axes = plt.subplots(nrows=2, ncols=1)
+
+print(argmax_predicted == labels[randidx])
 
 # change the colour depending on the predicted output
 colour = np.repeat("b", predicted_values.size)

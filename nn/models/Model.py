@@ -1,9 +1,12 @@
-from asyncio import current_task
 import datetime
+from random import shuffle
 import numpy as np
 import matplotlib.pyplot as plt 
 import pickle
 import os
+from numpy.random import MT19937
+from numpy.random import RandomState, SeedSequence
+
 
 class Model:
     error_arr = []
@@ -13,11 +16,17 @@ class Model:
         else: self.layers = layers
         self.error = None
         self.loss = None
+        self.optimiser = None
         self.epochs = None
         self.output = None
         self.grad = None
+        self.learning_rate = None
 
-    def fit(self, X, Y, epochs:int=1, learning_rate=0.01):
+    def fit(self, X, Y, epochs:int=1, batch=32):
+
+        if self.loss == None: raise Exception("NO LOSS FUNCTION ERROR: You need to add a loss function to your model")
+        if self.optimiser == None: raise Exception("NO OPTIMISER ERROR: You need to add an optmiser to your model")
+
         self.epochs = epochs
         X: np.ndarray = X[..., np.newaxis]
         Y: np.ndarray = Y[..., np.newaxis]
@@ -32,12 +41,13 @@ class Model:
                     output = layer.forward(output)
 
                 self.grad = self.loss.loss_prime(output, y)
-       
+                
                 for error in reversed(self.layers):
-                    self.grad = error.backwards(self.grad, learning_rate)
+                    self.grad = error.backwards(self.grad)
+                    error.update(self.learning_rate, self.optimiser.call)
 
             error = self.loss.loss(output, y)
-            print(error)
+            print(f"{i}/{self.epochs} --- {error}")
             Model.error_arr.append(self.loss.loss(output, y))
 
     def graph(self):
@@ -47,8 +57,10 @@ class Model:
         plt.plot(np.squeeze(self.error_arr), c="RED")
         plt.show()
 
-    def build(self, loss):
+    def build(self, loss, optimiser):
         self.loss = loss
+        self.optimiser = optimiser
+        self.learning_rate = self.optimiser.learning_rate
 
     def predict(self, X):
         X = np.array(X)[..., np.newaxis]
@@ -60,7 +72,6 @@ class Model:
         return output
 
     def save(self, filename, default_file_dir="nn\saved_models", behaviour=0):
-
         '''
         behaviour: int
             behaviour == 0: if the value of behaviour is 0 (default), then any existing "<filename>.pickle" files will be overwritten, unless the filename is changed.

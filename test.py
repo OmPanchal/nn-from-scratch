@@ -5,14 +5,15 @@ import pandas as pd
 from nn.utils import load_model, one_hot_array
 
 
-model = load_model("nn\saved_models\model-17-58-08.pickle")
+model = load_model("nn\saved_models\model-adam.pickle")
 
 df = pd.read_csv("dataset\mnist_train.csv")
 
 
-numpydf = df.to_numpy().T[1:].T[0]
-batch = df.to_numpy().T[1:].T[0:100]
-labels = df.to_numpy().T[0].T[0:100]
+# numpydf = np.random.shuffle(df.to_numpy()).T[1:].T[0]
+
+batch = df.to_numpy().T[1:].T[0:]
+labels = df.to_numpy().T[0].T[0:]
 one_hot_labels = one_hot_array(labels)
 
 running = True

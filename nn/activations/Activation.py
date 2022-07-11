@@ -11,5 +11,5 @@ class Activation:
         self.input = input
         return self.activation(input)
 
-    def backwards(self, error, learning_rate):
+    def backwards(self, error):
         return np.multiply(error, self.activation_prime(self.input))

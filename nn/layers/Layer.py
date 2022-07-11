@@ -7,7 +7,7 @@ class Layer(object):
         self.input_units = input_units
         self.output_units = output_units
 
-    def forward(self, input: np.ndarray): pass
+    def forward(self, input: np.ndarray): ...
 
-    def backwards(self, error, learning_rate): pass
+    def backwards(self, error, learning_rate, optimiser): ...
 

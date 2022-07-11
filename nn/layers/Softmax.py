@@ -14,8 +14,10 @@ class Softmax(Layer):
 
 		return self.output
 		
-	def backwards(self, error, learning_rate):
+	def backwards(self, error):
 		n = np.size(self.output)
 		tmp = np.tile(self.output, n)
 		
 		return np.dot(tmp * (np.identity(n) - tmp.T), error)
+
+	def update(self, *args, **kwargs): ...
